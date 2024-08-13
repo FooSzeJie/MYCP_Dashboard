@@ -6,6 +6,7 @@ import Sidebar from "./scenes/global/Sidebar";
 import Dashboard from "./scenes/dashboard";
 import LocalAuthority from "./scenes/local Authority/manageLocalAuthority";
 import AddLocalAuthority from "./scenes/local Authority/addLocalAuthority";
+import EditLocalAuthority from "./scenes/local Authority/edit";
 import Users from "./scenes/users/manageUser";
 import Login from "./scenes/login";
 
@@ -27,8 +28,12 @@ function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/local_authority" element={<LocalAuthority />} />
                 <Route
-                  path="/add_local_authority"
+                  path="/local_authority/add"
                   element={<AddLocalAuthority />}
+                />
+                <Route
+                  path="/local_authority/edit/:lid"
+                  element={<EditLocalAuthority />}
                 />
                 <Route path="/users" element={<Users />} />
 

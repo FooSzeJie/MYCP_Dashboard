@@ -143,7 +143,7 @@ const Sidebar = () => {
 
             <Item
               title="Add Local Authority"
-              to="/add_local_authority"
+              to="/local_authority/add"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}

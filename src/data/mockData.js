@@ -1,5 +1,48 @@
 import { tokens } from "../theme";
 
+export const mockLocalAuthority = [
+  {
+    id: 1,
+    name: "MBJB",
+    email: "MBJB@gmail.com",
+    phone: "012-345 6789",
+    area: "Skudai"
+  },
+
+  {
+    id: 2,
+    name: "MBJO",
+    email: "MBJO@gmail.com",
+    phone: "012-345 6789",
+    area: "Skudai"
+  },
+  
+  {
+    id: 3,
+    name: "MBJC",
+    email: "MBJC@gmail.com",
+    phone: "012-345 6789",
+    area: "Skudai"
+  },
+
+  {
+    id: 4,
+    name: "MBSK",
+    email: "MBSK@gmail.com",
+    phone: "012-345 6789",
+    area: "Skudai"
+  },
+
+  {
+    id: 5,
+    name: "MBCK",
+    email: "MBCK@gmail.com",
+    phone: "012-345 6789",
+    area: "Skudai"
+  },
+
+]
+
 export const mockDataTeam = [
   {
     id: 1,

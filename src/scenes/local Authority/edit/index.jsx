@@ -1,18 +1,11 @@
+import React, { useState, useEffect } from "react";
 import { Box, Button, TextField } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../../../components/Header";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { mockLocalAuthority as initialData } from "../../../data/mockData"; // Import mock data
-
-const initialValues = {
-  name: "",
-  email: "",
-  phone: "",
-  area: "",
-};
+import { useParams, useNavigate } from "react-router-dom"; // For getting the ID from the URL
+import { mockLocalAuthority } from "../../../data/mockData"; // Import mock data
 
 const phoneRegExp =
   /^((\+[1-9]{1,4}[ -]?)|(\([0-9]{2,3}\)[ -]?)|([0-9]{2,4})[ -]?)*?[0-9]{3,4}[ -]?[0-9]{3,4}$/;
@@ -27,46 +20,73 @@ const userSchema = yup.object().shape({
   area: yup.string().required("required"),
 });
 
-const AddLocalAuthority = () => {
-  const isNonMobile = useMediaQuery("(min-width: 600px)");
-  const navigate = useNavigate();
+const EditLocalAuthority = () => {
+  const [initialValues, setInitialValues] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    area: "",
+  });
 
-  const [mockLocalAuthority, setMockLocalAuthority] = useState(initialData);
+  const isNonMobile = useMediaQuery("(min-width: 600px)");
+  const { lid } = useParams(); // Get the ID from the URL
+  const navigate = useNavigate(); // To navigate after submission
+
+  useEffect(() => {
+    console.log("ID from params:", lid); // Log the ID
+    console.log("Mock data:", mockLocalAuthority); // Log the mock data
+
+    const authority = mockLocalAuthority.find(
+      (item) => item.id === parseInt(lid, 10) // or just `item.id === id` if they are strings
+    );
+
+    if (authority) {
+      console.log("Fetched data:", authority); // Log the fetched data
+      setInitialValues({
+        name: authority.name || "",
+        email: authority.email || "",
+        phone: authority.phone || "",
+        area: authority.area || "",
+      });
+    } else {
+      console.log("No matching data found for ID:", lid); // Log if no data is found
+    }
+  }, [lid]);
 
   const handleFormSubmit = (values) => {
-    // Generate a new id for the new entry
-    const newId = mockLocalAuthority.length
-      ? mockLocalAuthority[mockLocalAuthority.length - 1].id + 1
-      : 1;
+    console.log("Updated values:", values); // Log the updated values
 
-    // Create the new entry
-    const newEntry = {
-      id: newId,
-      ...values,
-    };
+    // Find the index of the item in mockLocalAuthority
+    const index = mockLocalAuthority.findIndex((item) => item.id === parseInt(lid, 10));
 
-    // Add the new entry to the mock data
-    setMockLocalAuthority((prevData) => {
-      const updatedData = [...prevData, newEntry];
-      console.log("Updated mock data:", updatedData); // Log the updated data
-      return updatedData;
-    });
+    if (index !== -1) {
+      // Update the mock data
+      mockLocalAuthority[index] = {
+        ...mockLocalAuthority[index],
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        area: values.area,
+      };
 
-    // Navigate back to the authority page
-    navigate("/local_authority"); // Adjust route as needed
+      console.log("Updated mock data:", mockLocalAuthority[index]); // Log the updated item
+
+      // Navigate back to the listing page or show a success message
+      navigate("/local_authority"); // Adjust this path as necessary
+    } else {
+      console.log("Failed to update: No matching data found for ID:", lid);
+    }
   };
 
   return (
     <Box m="20px">
-      <Header
-        title={"Create Local Authority"}
-        subtitle={"Create a New Local Authority"}
-      />
+      <Header title={"Edit Local Authority"} subtitle={""} />
 
       <Formik
         onSubmit={handleFormSubmit}
         initialValues={initialValues}
         validationSchema={userSchema}
+        enableReinitialize // Reinitialize the form when initialValues change
       >
         {({
           values,
@@ -91,11 +111,11 @@ const AddLocalAuthority = () => {
                 type="text"
                 label="Name"
                 onBlur={handleBlur}
-                onChange={handleChange}
+                onChange={handleChange} // Updates the values
                 value={values.name}
                 name="name"
                 error={!!touched.name && !!errors.name}
-                helperText={touched.name && errors.name}
+                helperText={touched.name && errors.name} // Display error messages
                 sx={{ gridColumn: "span 4" }}
               />
 
@@ -105,11 +125,11 @@ const AddLocalAuthority = () => {
                 type="text"
                 label="Email"
                 onBlur={handleBlur}
-                onChange={handleChange}
+                onChange={handleChange} // Updates the values
                 value={values.email}
                 name="email"
                 error={!!touched.email && !!errors.email}
-                helperText={touched.email && errors.email}
+                helperText={touched.email && errors.email} // Display error messages
                 sx={{ gridColumn: "span 4" }}
               />
 
@@ -119,11 +139,11 @@ const AddLocalAuthority = () => {
                 type="text"
                 label="Contact Number"
                 onBlur={handleBlur}
-                onChange={handleChange}
+                onChange={handleChange} // Updates the values
                 value={values.phone}
                 name="phone"
                 error={!!touched.phone && !!errors.phone}
-                helperText={touched.phone && errors.phone}
+                helperText={touched.phone && errors.phone} // Display error messages
                 sx={{ gridColumn: "span 4" }}
               />
 
@@ -133,18 +153,18 @@ const AddLocalAuthority = () => {
                 type="text"
                 label="Area"
                 onBlur={handleBlur}
-                onChange={handleChange}
+                onChange={handleChange} // Updates the values
                 value={values.area}
                 name="area"
                 error={!!touched.area && !!errors.area}
-                helperText={touched.area && errors.area}
+                helperText={touched.area && errors.area} // Display error messages
                 sx={{ gridColumn: "span 4" }}
               />
             </Box>
 
             <Box display={"flex"} justifyContent={"end"} mt={"20px"}>
-              <Button type="submit" color="secondary" variant="contained">
-                Create New Local Authority
+              <Button type="submit" color="success" variant="contained">
+                Update Local Authority
               </Button>
             </Box>
           </form>
@@ -154,4 +174,4 @@ const AddLocalAuthority = () => {
   );
 };
 
-export default AddLocalAuthority;
+export default EditLocalAuthority;
