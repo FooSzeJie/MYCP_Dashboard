@@ -5,8 +5,9 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import { tokens } from "../../../theme";
+import { tokens } from "../theme";
 import { useTheme } from "@mui/material";
+
 
 const ConfirmDialog = ({ open, onClose, onConfirm, title, content }) => {
   const theme = useTheme();

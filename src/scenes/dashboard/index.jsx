@@ -8,7 +8,11 @@ import TrafficIcon from "@mui/icons-material/Traffic";
 import Header from "../../components/Header";
 import StatBox from "../../components/StatBox";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { mockDataContacts } from "../../data/mockData";
+import { mockUsers } from "../../data/mockData";
+import Typography from "@mui/material/Typography";
+import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
+import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
+import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -16,8 +20,6 @@ const Dashboard = () => {
 
   const columns = [
     { field: "id", headerName: "ID", flex: 0.5 },
-
-    { field: "registrarId", headerName: "Registrar ID" },
 
     {
       field: "name",
@@ -27,11 +29,9 @@ const Dashboard = () => {
     },
 
     {
-      field: "age",
-      headerName: "Age",
-      type: "number",
-      headerAlign: "left",
-      align: "left",
+      field: "email",
+      headerName: "Email",
+      flex: 1,
     },
 
     {
@@ -41,27 +41,37 @@ const Dashboard = () => {
     },
 
     {
-      field: "email",
-      headerName: "Email",
+      field: "role",
+      headerName: "Role",
       flex: 1,
-    },
+      renderCell: ({ row: { role } }) => {
+        return (
+          <Box
+            width="60%"
+            m="0 auto"
+            p="5px"
+            display="flex"
+            justifyContent="center"
+            backgroundColor={
+              role === "admin"
+                ? colors.greenAccent[600]
+                : colors.greenAccent[700]
+            }
+            borderRadius="4px"
+          >
+            {role === "admin" && <AdminPanelSettingsOutlinedIcon />}
 
-    {
-      field: "address",
-      headerName: "Address",
-      flex: 1,
-    },
+            {role === "traffic warden" && <SecurityOutlinedIcon />}
 
-    {
-      field: "city",
-      headerName: "City",
-      flex: 1,
-    },
+            {role === "user" && <LockOpenOutlinedIcon />}
 
-    {
-      field: "zipCode",
-      headerName: "Zip Code",
-      flex: 1,
+            <Typography color={colors.grey[100]} sx={{ ml: "5px" }}>
+              {role}
+            </Typography>
+          </Box>
+        );
+      },
+      cellClassName: "name-column--cell",
     },
   ];
 
@@ -186,6 +196,7 @@ const Dashboard = () => {
             sx={{
               "& .MuiDataGrid-root": {
                 border: "none",
+                fontSize: "15px",
               },
 
               "& .MuitDataGrid-cell": {
@@ -217,7 +228,7 @@ const Dashboard = () => {
           >
             {/* rows is the data, columns is the header */}
             <DataGrid
-              rows={mockDataContacts}
+              rows={mockUsers}
               columns={columns}
               slots={{ toolbar: GridToolbar }}
             />
