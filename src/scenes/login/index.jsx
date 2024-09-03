@@ -1,7 +1,15 @@
-import React, { useState } from "react";
-import { Box, Button, TextField, Typography, Paper, Alert } from "@mui/material";
+import React from "react";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Alert,
+} from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
+import { useHttpClient } from "../../hooks/http-hooks";
 
 const initialValues = {
   email: "",
@@ -14,31 +22,27 @@ const userSchema = yup.object().shape({
 });
 
 const Login = ({ onLogin }) => {
-  const [error, setError] = useState("");
+  const { error, sendRequest, clearError } = useHttpClient();
 
   const handleFormSubmit = async (values) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/users/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const responseData = await sendRequest(
+        process.env.REACT_APP_BACKEND_URL + "/users/login",
+        "POST",
+        JSON.stringify({
           email: values.email,
           password: values.password,
         }),
-      });
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(responseData.message || "Failed to log in.");
-      }
-
+        {
+          "Content-Type": "application/json",
+        }
+      );
       onLogin(responseData.token);
-      setError("");
+      // setError("");
+      clearError();
     } catch (error) {
-      setError(error.message);
+      // setError(error.message);
+      error(error.message);
     }
   };
 
@@ -111,7 +115,8 @@ const Login = ({ onLogin }) => {
                   onBlur={handleBlur}
                   onChange={(e) => {
                     handleChange(e);
-                    setError("");
+                    // setError("");
+                    clearError();
                   }}
                   value={values.email}
                   name="email"
@@ -148,7 +153,8 @@ const Login = ({ onLogin }) => {
                   onBlur={handleBlur}
                   onChange={(e) => {
                     handleChange(e);
-                    setError("");
+                    // setError("");
+                    clearError();
                   }}
                   value={values.password}
                   name="password"
