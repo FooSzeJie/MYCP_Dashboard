@@ -9,6 +9,7 @@ import Button from "@mui/material/Button";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import ConfirmDialog from "../../../components/ComfirmDialog"; // Import the ConfirmDialog
+import { Link } from "react-router-dom";
 
 const LocalAuthority = () => {
   const theme = useTheme();
@@ -64,10 +65,12 @@ const LocalAuthority = () => {
               variant="contained"
               color="warning"
               startIcon={<EditIcon />}
-              href={`/local_authority/edit/${id}`}
+              component={Link} // Use Link component
+              to={`/local_authority/edit/${id}`} // Use 'to' prop for navigation
             >
               Edit
             </Button>
+
             <Button
               variant="contained"
               color="error"

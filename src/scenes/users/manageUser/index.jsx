@@ -13,6 +13,7 @@ import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettin
 import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import ConfirmDialog from "../../../components/ComfirmDialog"; // Import the ConfirmDialog
+import { Link } from "react-router-dom";
 
 const Users = () => {
   const theme = useTheme();
@@ -109,7 +110,8 @@ const Users = () => {
                 variant="contained"
                 color="warning"
                 startIcon={<EditIcon />}
-                href={`/users/edit/${id}`} // Use the id in the URL
+                component={Link} // Use Link component
+                to={`/users/edit/${id}`} // Use 'to' prop for navigation
               >
                 Edit
               </Button>
