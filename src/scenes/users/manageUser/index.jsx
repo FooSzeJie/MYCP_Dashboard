@@ -1,27 +1,41 @@
-import { useState, useCallback } from "react";
-import { Box } from "@mui/material";
+import { useState, useCallback, useEffect } from "react";
+import { Box, Typography, Button } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../../theme";
-import { mockUsers } from "../../../data/mockData";
 import Header from "../../../components/Header";
 import { useTheme } from "@mui/material";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import ConfirmDialog from "../../../components/ComfirmDialog"; // Import the ConfirmDialog
 import { Link } from "react-router-dom";
+import { useHttpClient } from "../../../hooks/http-hooks"; // Import the custom hook for handling HTTP requests
 
 const Users = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-
-  const [data, setData] = useState(mockUsers);
+  const [data, setData] = useState([]); // State to store fetched user data
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const { isLoading, error, sendRequest } = useHttpClient(); // Custom hook for HTTP requests
+
+  // Fetch user data from the backend API on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const responseData = await sendRequest(
+          `${process.env.REACT_APP_BACKEND_URL}/users/list`
+        );
+        setData(responseData.users); // Assuming your API response has a 'users' field
+      } catch (e) {
+        console.error("Error fetching users:", e.message);
+      }
+    };
+
+    fetchUsers();
+  }, [sendRequest]);
 
   const handleOpenDialog = useCallback((id) => {
     setSelectedId(id);
@@ -33,17 +47,35 @@ const Users = () => {
     setSelectedId(null);
   }, []);
 
-  const handleConfirmDelete = useCallback(() => {
+  const handleConfirmDelete = useCallback(async () => {
     if (selectedId !== null) {
-      const updatedData = data.filter((item) => item.id !== selectedId);
-      setData(updatedData);
-      console.log(`Deleted item with id: ${selectedId}`);
+      try {
+        // await sendRequest();
+        // `${process.env.REACT_APP_BACKEND_URL}/users/${selectedId}`,
+        // "DELETE"
+        // const updatedData = data.filter((item) => item.id !== selectedId);
+        // setData(updatedData); // Update state after deletion
+        console.log(`Deleted item with id: ${selectedId}`);
+      } catch (error) {
+        console.error("Error deleting user:", error.message);
+      }
     }
     handleCloseDialog();
-  }, [data, selectedId, handleCloseDialog]);
+  }, [selectedId, handleCloseDialog]);
 
   const columns = [
-    { field: "id", headerName: "ID", flex: 0.5 },
+    {
+      field: "sequence", // Custom field for sequence numbers
+      headerName: "No.",
+      flex: 0.5,
+      renderCell: (params) => {
+        // Calculate the sequence number based on the row index in the row models
+        const rowIndex = Array.from(params.api.getRowModels().keys()).indexOf(
+          params.id
+        );
+        return rowIndex + 1;
+      },
+    },
 
     {
       field: "name",
@@ -59,7 +91,7 @@ const Users = () => {
     },
 
     {
-      field: "phone",
+      field: "no_telephone",
       headerName: "Phone Number",
       flex: 1,
     },
@@ -137,6 +169,12 @@ const Users = () => {
     <Box m="20px">
       <Header title="Users" subtitle="List of Users" />
 
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
+
       <Box
         m="40px 0 0 0"
         height="75vh"
@@ -146,7 +184,7 @@ const Users = () => {
             fontSize: "15px",
           },
 
-          "& .MuitDataGrid-cell": {
+          "& .MuiDataGrid-cell": {
             borderBottom: "none",
           },
 
@@ -173,12 +211,19 @@ const Users = () => {
           },
         }}
       >
-        {/* rows is the data, columns is the header */}
-        <DataGrid
-          rows={mockUsers}
-          columns={columns}
-          slots={{ toolbar: GridToolbar }}
-        />
+        {/* Display loading state */}
+        {isLoading ? (
+          <Typography variant="h6" align="center" sx={{ mt: 4 }}>
+            Loading users...
+          </Typography>
+        ) : (
+          <DataGrid
+            rows={data} // Use fetched data for rows
+            columns={columns}
+            getRowId={(row) => row._id} // Use _id as the row identifier
+            slots={{ toolbar: GridToolbar }}
+          />
+        )}
       </Box>
 
       <ConfirmDialog
