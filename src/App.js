@@ -58,6 +58,7 @@ function App() {
         {isAuthenticated ? (
           <div className="app">
             <Sidebar />
+
             <main className="content">
               <Topbar onLogout={handleLogout} />
               <Routes>
