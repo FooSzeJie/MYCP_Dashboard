@@ -28,9 +28,9 @@ const LocalAuthority = () => {
         const responseData = await sendRequest(
           `${process.env.REACT_APP_BACKEND_URL}/local_authority/list`
         );
-        setData(responseData.localAuthority); // Assuming your API response has a 'users' field
+        setData(responseData.localAuthority); // Assuming your API response has a 'localAuthority' field
       } catch (e) {
-        console.error("Error fetching users:", e.message);
+        console.error("Error fetching data:", e.message);
       }
     };
 
@@ -47,14 +47,21 @@ const LocalAuthority = () => {
     setSelectedId(null);
   }, []);
 
-  const handleConfirmDelete = useCallback(() => {
-    if (selectedId !== null) {
-      const updatedData = data.filter((item) => item.id !== selectedId);
-      setData(updatedData);
-      console.log(`Deleted item with id: ${selectedId}`);
+  const handleConfirmDelete = useCallback(async () => {
+    try {
+      await sendRequest(
+        `${process.env.REACT_APP_BACKEND_URL}/local_authority/${selectedId}/delete`,
+        "DELETE",
+        null
+      );
+      // Filter out the deleted item from the local data state
+      setData((prevData) => prevData.filter((item) => item.id !== selectedId));
+    } catch (e) {
+      console.error("Error deleting item:", e.message);
+    } finally {
+      handleCloseDialog(); // Close the confirmation dialog
     }
-    handleCloseDialog();
-  }, [data, selectedId, handleCloseDialog]);
+  }, [selectedId, sendRequest, handleCloseDialog]);
 
   const columns = [
     {
@@ -62,10 +69,6 @@ const LocalAuthority = () => {
       headerName: "No.",
       flex: 0.5,
       renderCell: (params) => {
-        // Display the sequence number based on the row index
-        // return params.api.getRowIndex(params.id) + 1
-
-        // Calculate the sequence number based on the row index in the row models
         const rowIndex = Array.from(params.api.getRowModels().keys()).indexOf(
           params.id
         );
@@ -79,15 +82,10 @@ const LocalAuthority = () => {
       flex: 1,
       cellClassName: "name-column--cell",
     },
-
     { field: "nickname", headerName: "NickName", flex: 1 },
-
     { field: "email", headerName: "Email", flex: 1 },
-
     { field: "no_telephone", headerName: "Phone Number", flex: 1 },
-
     { field: "area", headerName: "Area", flex: 1 },
-
     { field: "state", headerName: "State", flex: 1 },
 
     {
@@ -101,12 +99,11 @@ const LocalAuthority = () => {
               variant="contained"
               color="warning"
               startIcon={<EditIcon />}
-              component={Link} // Use Link component
-              to={`/local_authority/edit/${id}`} // Use 'to' prop for navigation
+              component={Link}
+              to={`/local_authority/edit/${id}`}
             >
               Edit
             </Button>
-
             <Button
               variant="contained"
               color="error"
@@ -168,9 +165,9 @@ const LocalAuthority = () => {
           </Typography>
         ) : (
           <DataGrid
-            rows={data} // Use fetched data for rows
+            rows={data}
             columns={columns}
-            getRowId={(row) => row.id} // Use id as the row identifier
+            getRowId={(row) => row.id}
             slots={{ toolbar: GridToolbar }}
           />
         )}
