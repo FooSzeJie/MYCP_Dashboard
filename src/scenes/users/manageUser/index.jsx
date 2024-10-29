@@ -69,6 +69,9 @@ const Users = () => {
       headerName: "No.",
       flex: 0.5,
       renderCell: (params) => {
+        // Display the sequence number based on the row index
+        // return params.api.getRowIndex(params.id) + 1
+
         // Calculate the sequence number based on the row index in the row models
         const rowIndex = Array.from(params.api.getRowModels().keys()).indexOf(
           params.id
@@ -134,7 +137,7 @@ const Users = () => {
       headerName: "Action",
       flex: 1,
       renderCell: (params) => {
-        const { id } = params.row; // Get the id from the row data
+        const { _id } = params.row; // Get the id from the row data
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
             <Box sx={{ display: "flex" }}>
@@ -143,7 +146,7 @@ const Users = () => {
                 color="warning"
                 startIcon={<EditIcon />}
                 component={Link} // Use Link component
-                to={`/users/edit/${id}`} // Use 'to' prop for navigation
+                to={`/users/edit/${_id}`} // Use 'to' prop for navigation
               >
                 Edit
               </Button>
@@ -154,7 +157,7 @@ const Users = () => {
                 variant="contained"
                 color="error"
                 startIcon={<DeleteIcon />}
-                onClick={() => handleOpenDialog(id)} // Open dialog with the id
+                onClick={() => handleOpenDialog(_id)} // Open dialog with the id
               >
                 Delete
               </Button>
