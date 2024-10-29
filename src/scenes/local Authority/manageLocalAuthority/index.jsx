@@ -124,6 +124,13 @@ const LocalAuthority = () => {
   return (
     <Box m="20px">
       <Header title="Local Authority" subtitle="List of Local Authority" />
+
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
+
       <Box
         m="40px 0 0 0"
         height="75vh"
