@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { Box } from "@mui/material";
+import { useState, useCallback, useEffect } from "react";
+import { Box, Typography } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../../theme";
 import { mockLocalAuthority as initialData } from "../../../data/mockData";
@@ -10,6 +10,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import ConfirmDialog from "../../../components/ComfirmDialog"; // Import the ConfirmDialog
 import { Link } from "react-router-dom";
+import { useHttpClient } from "../../../hooks/http-hooks"; // Import the custom hook for handling HTTP requests
 
 const LocalAuthority = () => {
   const theme = useTheme();
@@ -18,6 +19,23 @@ const LocalAuthority = () => {
   const [data, setData] = useState(initialData);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const { isLoading, error, sendRequest } = useHttpClient(); // Custom hook for HTTP requests
+
+  // Fetch user data from the backend API on component mount
+  useEffect(() => {
+    const fetchLocalAuthority = async () => {
+      try {
+        const responseData = await sendRequest(
+          `${process.env.REACT_APP_BACKEND_URL}/local_authority/list`
+        );
+        setData(responseData.localAuthority); // Assuming your API response has a 'users' field
+      } catch (e) {
+        console.error("Error fetching users:", e.message);
+      }
+    };
+
+    fetchLocalAuthority();
+  }, [sendRequest]);
 
   const handleOpenDialog = useCallback((id) => {
     setSelectedId(id);
@@ -39,7 +57,21 @@ const LocalAuthority = () => {
   }, [data, selectedId, handleCloseDialog]);
 
   const columns = [
-    { field: "id", headerName: "ID", flex: 0.5 },
+    {
+      field: "sequence", // Custom field for sequence numbers
+      headerName: "No.",
+      flex: 0.5,
+      renderCell: (params) => {
+        // Display the sequence number based on the row index
+        // return params.api.getRowIndex(params.id) + 1
+
+        // Calculate the sequence number based on the row index in the row models
+        const rowIndex = Array.from(params.api.getRowModels().keys()).indexOf(
+          params.id
+        );
+        return rowIndex + 1;
+      },
+    },
 
     {
       field: "name",
@@ -48,11 +80,15 @@ const LocalAuthority = () => {
       cellClassName: "name-column--cell",
     },
 
+    { field: "nickname", headerName: "NickName", flex: 1 },
+
     { field: "email", headerName: "Email", flex: 1 },
 
-    { field: "phone", headerName: "Phone Number", flex: 1 },
+    { field: "no_telephone", headerName: "Phone Number", flex: 1 },
 
     { field: "area", headerName: "Area", flex: 1 },
+
+    { field: "state", headerName: "State", flex: 1 },
 
     {
       headerName: "Action",
@@ -118,11 +154,19 @@ const LocalAuthority = () => {
           },
         }}
       >
-        <DataGrid
-          rows={data}
-          columns={columns}
-          slots={{ toolbar: GridToolbar }}
-        />
+        {/* Display loading state */}
+        {isLoading ? (
+          <Typography variant="h6" align="center" sx={{ mt: 4 }}>
+            Loading Local Authority...
+          </Typography>
+        ) : (
+          <DataGrid
+            rows={data} // Use fetched data for rows
+            columns={columns}
+            getRowId={(row) => row.id} // Use id as the row identifier
+            slots={{ toolbar: GridToolbar }}
+          />
+        )}
       </Box>
 
       <ConfirmDialog
