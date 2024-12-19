@@ -1,110 +1,49 @@
 import { Box, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
-// import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
+import Typography from "@mui/material/Typography";
 import EmailIcon from "@mui/icons-material/Email";
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import TrafficIcon from "@mui/icons-material/Traffic";
 import Header from "../../components/Header";
 import StatBox from "../../components/StatBox";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { mockUsers } from "../../data/mockData";
-import Typography from "@mui/material/Typography";
-import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
-import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
-import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
+import { ResponsiveBar } from "@nivo/bar";
+import { ResponsivePie } from "@nivo/pie";
+import LineChart from "../../components/LineChart";
 
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
-  const columns = [
-    { field: "id", headerName: "ID", flex: 0.5 },
+  const barData = [
+    { country: "Emails", sent: 1245, received: 920 },
+    { country: "Sales", sent: 890, received: 750 },
+    { country: "Clients", sent: 570, received: 450 },
+    { country: "Traffic", sent: 1350, received: 1120 },
+  ];
 
-    {
-      field: "name",
-      headerName: "Name",
-      flex: 1,
-      cellClassName: "name-column--cell",
-    },
-
-    {
-      field: "email",
-      headerName: "Email",
-      flex: 1,
-    },
-
-    {
-      field: "phone",
-      headerName: "Phone Number",
-      flex: 1,
-    },
-
-    {
-      field: "role",
-      headerName: "Role",
-      flex: 1,
-      renderCell: ({ row: { role } }) => {
-        return (
-          <Box
-            width="60%"
-            m="0 auto"
-            p="5px"
-            display="flex"
-            justifyContent="center"
-            backgroundColor={
-              role === "admin"
-                ? colors.greenAccent[600]
-                : colors.greenAccent[700]
-            }
-            borderRadius="4px"
-          >
-            {role === "admin" && <AdminPanelSettingsOutlinedIcon />}
-
-            {role === "traffic warden" && <SecurityOutlinedIcon />}
-
-            {role === "user" && <LockOpenOutlinedIcon />}
-
-            <Typography color={colors.grey[100]} sx={{ ml: "5px" }}>
-              {role}
-            </Typography>
-          </Box>
-        );
-      },
-      cellClassName: "name-column--cell",
-    },
+  const pieData = [
+    { id: "Emails", value: 1245, label: "Emails" },
+    { id: "Sales", value: 431225, label: "Sales" },
+    { id: "Clients", value: 32441, label: "Clients" },
+    { id: "Traffic", value: 1325134, label: "Traffic" },
   ];
 
   return (
     <Box m="20px">
+      {/* Page Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Header title="DASHBOARD" subtitle="Welcome to your dashboard" />
       </Box>
 
-      {/* <Box>
-        <Button
-          sx={{
-            backgroundColor: colors.blueAccent[700],
-            color: colors.grey[100],
-            fontSize: "14px",
-            fontWeight: "bold",
-            padding: "10px 20px",
-          }}
-        >
-          <DownloadOutlinedIcon sx={{ mr: "10px" }} />
-          Download Report
-        </Button>
-      </Box> */}
-
-      {/* GRID & Charts */}
+      {/* Stat Boxes */}
       <Box
         display="grid"
         gridTemplateColumns="repeat(12, 1fr)"
         gridAutoRows="140px"
         gap="20px"
-        m="10px 0 0 0"
+        mt="20px"
       >
-        {/* ROW 1 */}
         <Box
           gridColumn="span 3"
           backgroundColor={colors.primary[400]}
@@ -124,7 +63,6 @@ const Dashboard = () => {
             }
           />
         </Box>
-
         <Box
           gridColumn="span 3"
           backgroundColor={colors.primary[400]}
@@ -144,7 +82,6 @@ const Dashboard = () => {
             }
           />
         </Box>
-
         <Box
           gridColumn="span 3"
           backgroundColor={colors.primary[400]}
@@ -164,7 +101,6 @@ const Dashboard = () => {
             }
           />
         </Box>
-
         <Box
           gridColumn="span 3"
           backgroundColor={colors.primary[400]}
@@ -184,53 +120,92 @@ const Dashboard = () => {
             }
           />
         </Box>
+      </Box>
 
-        {/* Row 2 */}
+      {/* Charts Section */}
+      <Box
+        display="grid"
+        gridTemplateColumns="repeat(12, 1fr)"
+        gridAutoRows="300px"
+        gap="20px"
+        mt="20px"
+      >
+        {/* Bar Chart */}
+        <Box gridColumn="span 6" backgroundColor={colors.primary[400]} p="20px">
+          <Typography variant="h5" sx={{ mb: "10px" }}>
+            Sent vs Received
+          </Typography>
+          <Box height="100%">
+            <ResponsiveBar
+              data={barData}
+              keys={["sent", "received"]}
+              indexBy="country"
+              margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+              padding={0.3}
+              colors={["#f47560", "#e8c1a0"]}
+              axisBottom={{
+                tickSize: 5,
+                tickPadding: 5,
+                tickRotation: 0,
+                legend: "Category",
+                legendPosition: "middle",
+                legendOffset: 32,
+                tickTextColor: colors.grey[100], // Custom tick text color
+              }}
+              axisLeft={{
+                tickSize: 5,
+                tickPadding: 5,
+                tickRotation: 0,
+                legend: "Values",
+                legendPosition: "middle",
+                legendOffset: -40,
+                tickTextColor: colors.grey[100], // Custom tick text color
+              }}
+              theme={{
+                axis: {
+                  ticks: {
+                    text: {
+                      fill: colors.grey[100],
+                    },
+                  },
+                },
+                legends: {
+                  text: {
+                    fill: colors.grey[100],
+                  },
+                },
+              }}
+            />
+          </Box>
+        </Box>
+
+        {/* Line Chart */}
+        <Box gridColumn="span 6" backgroundColor={colors.primary[400]} p="20px">
+          <LineChart />
+        </Box>
+
+        {/* Pie Chart */}
         <Box
           gridColumn="span 12"
-          gridRow="span 2"
           backgroundColor={colors.primary[400]}
+          p="20px"
         >
-          <Box
-            height="75vh"
-            sx={{
-              "& .MuiDataGrid-root": {
-                border: "none",
-                fontSize: "15px",
-              },
-
-              "& .MuitDataGrid-cell": {
-                borderBottom: "none",
-              },
-
-              "& .name-column--cell": {
-                color: colors.greenAccent[300],
-              },
-
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: colors.blueAccent[700],
-                borderBottom: "none",
-              },
-
-              "& .MuiDataGrid-virtualScroller": {
-                backgroundColor: colors.primary[400],
-              },
-
-              "& .MuiDataGrid-footerContainer": {
-                borderTop: "none",
-                backgroundColor: colors.blueAccent[700],
-              },
-
-              "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                color: `${colors.grey[100]} !important`,
-              },
-            }}
-          >
-            {/* rows is the data, columns is the header */}
-            <DataGrid
-              rows={mockUsers}
-              columns={columns}
-              slots={{ toolbar: GridToolbar }}
+          <Typography variant="h5" sx={{ mb: "10px" }}>
+            Distribution Overview
+          </Typography>
+          <Box height="100%">
+            <ResponsivePie
+              data={pieData}
+              margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
+              innerRadius={0.5}
+              padAngle={0.7}
+              cornerRadius={3}
+              colors={{ scheme: "nivo" }}
+              borderWidth={1}
+              borderColor={{ from: "color", modifiers: [["darker", 0.2]] }}
+              radialLabelsTextColor={colors.grey[100]} // Radial label text color
+              radialLabelsLinkColor={colors.grey[100]} // Radial label link color
+              sliceLabelsTextColor={colors.grey[100]} // Slice label text color
             />
           </Box>
         </Box>
