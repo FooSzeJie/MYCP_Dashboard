@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TextField } from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../../../components/Header";
 import { useParams, useNavigate } from "react-router-dom"; // For getting the ID from the URL
 import { mockUsers } from "../../../data/mockData"; // Import mock data
+import { useHttpClient } from "../../../hooks/http-hooks"; // Import your custom hook
 
 const phoneRegExp =
   /^((\+[1-9]{1,4}[ -]?)|(\([0-9]{2,3}\)[ -]?)|([0-9]{2,4})[ -]?)*?[0-9]{3,4}[ -]?[0-9]{3,4}$/;
@@ -31,27 +32,31 @@ const EditUser = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const { uid } = useParams(); // Get the ID from the URL
   const navigate = useNavigate(); // To navigate after submission
+  const { sendRequest, error } = useHttpClient(); // Custom hook for HTTP requests
 
   useEffect(() => {
-    console.log("ID from params:", uid); // Log the ID
-    console.log("Mock data:", mockUsers); // Log the mock data
+    const fetchUser = async () => {
+      try {
+        const responseData = await sendRequest(
+          `${process.env.REACT_APP_BACKEND_URL}/users/${uid}/profile`
+        );
 
-    const user = mockUsers.find(
-      (item) => item.id === parseInt(uid, 10) // or just `item.id === id` if they are strings
-    );
+        setInitialValues({
+          name: responseData.user.name || "",
+          email: responseData.user.email || "",
+          phone: responseData.user.no_telephone || "",
+          role: responseData.user.role || "",
+        });
 
-    if (user) {
-      console.log("Fetched data:", user); // Log the fetched data
-      setInitialValues({
-        name: user.name || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        role: user.role || "",
-      });
-    } else {
-      console.log("No matching data found for ID:", uid); // Log if no data is found
-    }
-  }, [uid]);
+        console.log(responseData.user);
+      } catch (e) {
+        console.log(e);
+        console.error("Failed to fetch data: ", e.message);
+      }
+    };
+
+    fetchUser();
+  }, [uid, sendRequest]);
 
   const handleFormSubmit = (values) => {
     console.log("Updated values:", values); // Log the updated values
@@ -81,6 +86,13 @@ const EditUser = () => {
   return (
     <Box m="20px">
       <Header title={"Edit Local Authority"} subtitle={""} />
+
+      {/* Display API error if any */}
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
 
       <Formik
         onSubmit={handleFormSubmit}

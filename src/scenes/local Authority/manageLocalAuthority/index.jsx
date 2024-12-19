@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../../theme";
-import { mockLocalAuthority as initialData } from "../../../data/mockData";
+// import { mockLocalAuthority as initialData } from "../../../data/mockData";
 import Header from "../../../components/Header";
 import { useTheme } from "@mui/material";
 import Button from "@mui/material/Button";
@@ -16,7 +16,7 @@ const LocalAuthority = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const { isLoading, error, sendRequest } = useHttpClient(); // Custom hook for HTTP requests
