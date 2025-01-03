@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+} from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../../../components/Header";
 import { useParams, useNavigate } from "react-router-dom"; // For getting the ID from the URL
-import { mockUsers } from "../../../data/mockData"; // Import mock data
 import { useHttpClient } from "../../../hooks/http-hooks"; // Import your custom hook
 
-const phoneRegExp =
-  /^((\+[1-9]{1,4}[ -]?)|(\([0-9]{2,3}\)[ -]?)|([0-9]{2,4})[ -]?)*?[0-9]{3,4}[ -]?[0-9]{3,4}$/;
-
+// Yup schema for validation
 const userSchema = yup.object().shape({
   name: yup.string().required("required"),
   email: yup.string().email("Invalid email").required("required"),
-  phone: yup
-    .string()
-    .matches(phoneRegExp, "Phone number is not valid")
-    .required("required"),
-  role: yup.string().required("required"),
+  phone: yup.string().required("required"),
+  role: yup.string().required("required"), // Dropdown validation
 });
 
 const EditUser = () => {
@@ -30,10 +33,11 @@ const EditUser = () => {
   });
 
   const isNonMobile = useMediaQuery("(min-width: 600px)");
-  const { uid } = useParams(); // Get the ID from the URL
-  const navigate = useNavigate(); // To navigate after submission
-  const { sendRequest, error } = useHttpClient(); // Custom hook for HTTP requests
+  const { uid } = useParams(); // Get the user ID from the URL
+  const navigate = useNavigate(); // Navigate after form submission
+  const { sendRequest, error } = useHttpClient(); // HTTP hook for API calls
 
+  // Fetch user data when the component is mounted
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -48,46 +52,39 @@ const EditUser = () => {
           role: responseData.user.role || "",
         });
 
-        console.log(responseData.user);
+        console.log(responseData.user); // Debugging log
       } catch (e) {
-        console.log(e);
-        console.error("Failed to fetch data: ", e.message);
+        console.error("Failed to fetch user data: ", e.message);
       }
     };
 
     fetchUser();
   }, [uid, sendRequest]);
 
-  const handleFormSubmit = (values) => {
-    console.log("Updated values:", values); // Log the updated values
+  const handleFormSubmit = async (values) => {
+    try {
+      await sendRequest(
+        `${process.env.REACT_APP_BACKEND_URL}/users/${uid}/admin/update`,
+        "PATCH",
+        JSON.stringify({
+          name: values.name,
+          no_telephone: values.phone,
+          role: values.role, // Ensure role is included in the request
+        }),
+        { "Content-Type": "application/json" }
+      );
 
-    // Find the index of the item in mockUsers
-    const index = mockUsers.findIndex((item) => item.id === parseInt(uid, 10));
-
-    if (index !== -1) {
-      // Update the mock data
-      mockUsers[index] = {
-        ...mockUsers[index],
-        name: values.name,
-        email: values.email,
-        phone: values.phone,
-        role: values.role,
-      };
-
-      console.log("Updated mock data:", mockUsers[index]); // Log the updated item
-
-      // Navigate back to the listing page or show a success message
-      navigate("/local_authority"); // Adjust this path as necessary
-    } else {
-      console.log("Failed to update: No matching data found for ID:", uid);
+      // Navigate back to the user list page
+      navigate("/users");
+    } catch (err) {
+      console.error("Update failed:", err.message);
     }
   };
 
   return (
     <Box m="20px">
-      <Header title={"Edit Local Authority"} subtitle={""} />
+      <Header title="Edit Local Authority" subtitle="" />
 
-      {/* Display API error if any */}
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>
           {error}
@@ -98,7 +95,7 @@ const EditUser = () => {
         onSubmit={handleFormSubmit}
         initialValues={initialValues}
         validationSchema={userSchema}
-        enableReinitialize // Reinitialize the form when initialValues change
+        enableReinitialize
       >
         {({
           values,
@@ -110,9 +107,9 @@ const EditUser = () => {
         }) => (
           <form onSubmit={handleSubmit}>
             <Box
-              display={"grid"}
+              display="grid"
               gap="30px"
-              gridTemplateColumns={"repeat(4, minmax(0, 1fr))"}
+              gridTemplateColumns="repeat(4, minmax(0, 1fr))"
               sx={{
                 "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
               }}
@@ -123,25 +120,25 @@ const EditUser = () => {
                 type="text"
                 label="Name"
                 onBlur={handleBlur}
-                onChange={handleChange} // Updates the values
+                onChange={handleChange}
                 value={values.name}
                 name="name"
                 error={!!touched.name && !!errors.name}
-                helperText={touched.name && errors.name} // Display error messages
+                helperText={touched.name && errors.name}
                 sx={{ gridColumn: "span 4" }}
               />
 
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
+                type="email"
                 label="Email"
                 onBlur={handleBlur}
-                onChange={handleChange} // Updates the values
+                onChange={handleChange}
                 value={values.email}
                 name="email"
                 error={!!touched.email && !!errors.email}
-                helperText={touched.email && errors.email} // Display error messages
+                helperText={touched.email && errors.email}
                 sx={{ gridColumn: "span 4" }}
               />
 
@@ -151,30 +148,43 @@ const EditUser = () => {
                 type="text"
                 label="Contact Number"
                 onBlur={handleBlur}
-                onChange={handleChange} // Updates the values
+                onChange={handleChange}
                 value={values.phone}
                 name="phone"
                 error={!!touched.phone && !!errors.phone}
-                helperText={touched.phone && errors.phone} // Display error messages
+                helperText={touched.phone && errors.phone}
                 sx={{ gridColumn: "span 4" }}
               />
 
-              <TextField
+              {/* Role Dropdown */}
+              <FormControl
                 fullWidth
                 variant="filled"
-                type="text"
-                label="Role"
-                onBlur={handleBlur}
-                onChange={handleChange} // Updates the values
-                value={values.role}
-                name="role"
-                error={!!touched.role && !!errors.role}
-                helperText={touched.role && errors.role} // Display error messages
                 sx={{ gridColumn: "span 4" }}
-              />
+                error={!!touched.role && !!errors.role}
+              >
+                <InputLabel id="role-label">Role</InputLabel>
+                <Select
+                  labelId="role-label"
+                  id="role"
+                  value={values.role}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  name="role"
+                >
+                  <MenuItem value="admin">Admin</MenuItem>
+                  <MenuItem value="user">User</MenuItem>
+                  <MenuItem value="traffic warden">Traffic Warden</MenuItem>
+                </Select>
+                {touched.role && errors.role && (
+                  <Typography color="error" variant="caption">
+                    {errors.role}
+                  </Typography>
+                )}
+              </FormControl>
             </Box>
 
-            <Box display={"flex"} justifyContent={"end"} mt={"20px"}>
+            <Box display="flex" justifyContent="end" mt="20px">
               <Button type="submit" color="success" variant="contained">
                 Update User Information
               </Button>

@@ -2,33 +2,33 @@ import { useState, useCallback, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../../theme";
-// import { mockLocalAuthority as initialData } from "../../../data/mockData";
-import Header from "../../../components/Header";
 import { useTheme } from "@mui/material";
+import Header from "../../../components/Header";
 import Button from "@mui/material/Button";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import ConfirmDialog from "../../../components/ComfirmDialog"; // Import the ConfirmDialog
+import PaymentIcon from "@mui/icons-material/Payment";
+import ConfirmDialog from "../../../components/ComfirmDialog";
 import { Link } from "react-router-dom";
-import { useHttpClient } from "../../../hooks/http-hooks"; // Import the custom hook for handling HTTP requests
+import { useHttpClient } from "../../../hooks/http-hooks";
 
 const LocalAuthority = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
-  const [data, setData] = useState();
+  const [data, setData] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-  const { isLoading, error, sendRequest } = useHttpClient(); // Custom hook for HTTP requests
+  const [dialogAction, setDialogAction] = useState("");
+  const { isLoading, error, sendRequest } = useHttpClient();
 
-  // Fetch user data from the backend API on component mount
   useEffect(() => {
     const fetchLocalAuthority = async () => {
       try {
         const responseData = await sendRequest(
           `${process.env.REACT_APP_BACKEND_URL}/local_authority/list`
         );
-        setData(responseData.localAuthority); // Assuming your API response has a 'localAuthority' field
+        setData(responseData.localAuthority || []);
       } catch (e) {
         console.error("Error fetching data:", e.message);
       }
@@ -37,31 +37,48 @@ const LocalAuthority = () => {
     fetchLocalAuthority();
   }, [sendRequest]);
 
-  const handleOpenDialog = useCallback((id) => {
+  const handleOpenDialog = useCallback((id, action) => {
     setSelectedId(id);
+    setDialogAction(action);
     setDialogOpen(true);
   }, []);
 
   const handleCloseDialog = useCallback(() => {
     setDialogOpen(false);
     setSelectedId(null);
+    setDialogAction("");
   }, []);
 
-  const handleConfirmDelete = useCallback(async () => {
-    try {
-      await sendRequest(
-        `${process.env.REACT_APP_BACKEND_URL}/local_authority/${selectedId}/delete`,
-        "DELETE",
-        null
-      );
-      // Filter out the deleted item from the local data state
-      setData((prevData) => prevData.filter((item) => item.id !== selectedId));
-    } catch (e) {
-      console.error("Error deleting item:", e.message);
-    } finally {
-      handleCloseDialog(); // Close the confirmation dialog
+  const handleConfirm = useCallback(async () => {
+    if (dialogAction === "delete") {
+      try {
+        await sendRequest(
+          `${process.env.REACT_APP_BACKEND_URL}/local_authority/${selectedId}/delete`,
+          "DELETE"
+        );
+        setData((prevData) =>
+          prevData.filter((item) => item.id !== selectedId)
+        );
+      } catch (e) {
+        console.error("Error deleting item:", e.message);
+      }
+    } else if (dialogAction === "paid") {
+      try {
+        await sendRequest(
+          `${process.env.REACT_APP_BACKEND_URL}/local_authority/${selectedId}/paid`,
+          "PATCH"
+        );
+        setData((prevData) =>
+          prevData.map((item) =>
+            item.id === selectedId ? { ...item, income: 0 } : item
+          )
+        );
+      } catch (e) {
+        console.error("Error updating income:", e.message);
+      }
     }
-  }, [selectedId, sendRequest, handleCloseDialog]);
+    handleCloseDialog();
+  }, [dialogAction, selectedId, sendRequest, handleCloseDialog]);
 
   const columns = [
     {
@@ -75,7 +92,7 @@ const LocalAuthority = () => {
         return rowIndex + 1;
       },
     },
-
+    
     {
       field: "name",
       headerName: "Name",
@@ -84,34 +101,47 @@ const LocalAuthority = () => {
     },
     { field: "nickname", headerName: "NickName", flex: 1 },
     { field: "email", headerName: "Email", flex: 1 },
-    { field: "no_telephone", headerName: "Phone Number", flex: 1 },
-    { field: "area", headerName: "Area", flex: 1 },
-    { field: "state", headerName: "State", flex: 1 },
-
+    { field: "no_telephone", headerName: "Phone", flex: 0.8 },
+    { field: "income", headerName: "Income", flex: 0.7 },
+    { field: "total_income", headerName: "Total Income", flex: 0.7 },
+    { field: "area", headerName: "Area", flex: 0.8 },
+    { field: "state", headerName: "State", flex: 0.7 },
     {
       headerName: "Action",
-      flex: 1,
+      flex: 2,
       renderCell: (params) => {
         const { id } = params.row;
         return (
-          <Box sx={{ display: "flex", gap: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              flexWrap: "wrap", // Allow buttons to wrap on small screens
+              justifyContent: "space-evenly",
+            }}
+          >
             <Button
               variant="contained"
               color="warning"
               startIcon={<EditIcon />}
               component={Link}
               to={`/local_authority/edit/${id}`}
-            >
-              Edit
-            </Button>
+              size="small"
+            />
             <Button
               variant="contained"
               color="error"
               startIcon={<DeleteIcon />}
-              onClick={() => handleOpenDialog(id)}
-            >
-              Delete
-            </Button>
+              onClick={() => handleOpenDialog(id, "delete")}
+              size="small"
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<PaymentIcon />}
+              onClick={() => handleOpenDialog(id, "paid")}
+              size="small"
+            />
           </Box>
         );
       },
@@ -121,7 +151,6 @@ const LocalAuthority = () => {
   return (
     <Box m="20px">
       <Header title="Local Authority" subtitle="List of Local Authority" />
-
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>
           {error}
@@ -132,16 +161,9 @@ const LocalAuthority = () => {
         m="40px 0 0 0"
         height="75vh"
         sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-            fontSize: "15px",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-          },
-          "& .name-column--cell": {
-            color: colors.greenAccent[300],
-          },
+          "& .MuiDataGrid-root": { border: "none", fontSize: "14px" },
+          "& .MuiDataGrid-cell": { borderBottom: "none" },
+          "& .name-column--cell": { color: colors.greenAccent[300] },
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: colors.blueAccent[700],
             borderBottom: "none",
@@ -158,7 +180,6 @@ const LocalAuthority = () => {
           },
         }}
       >
-        {/* Display loading state */}
         {isLoading ? (
           <Typography variant="h6" align="center" sx={{ mt: 4 }}>
             Loading Local Authority...
@@ -176,9 +197,15 @@ const LocalAuthority = () => {
       <ConfirmDialog
         open={dialogOpen}
         onClose={handleCloseDialog}
-        onConfirm={handleConfirmDelete}
-        title="Confirm Delete"
-        content="Are you sure you want to delete this item?"
+        onConfirm={handleConfirm}
+        title={
+          dialogAction === "delete" ? "Confirm Delete" : "Confirm Clear Income"
+        }
+        content={
+          dialogAction === "delete"
+            ? "Are you sure you want to delete this item?"
+            : "Are you sure you want to clear the income for this item?"
+        }
       />
     </Box>
   );
