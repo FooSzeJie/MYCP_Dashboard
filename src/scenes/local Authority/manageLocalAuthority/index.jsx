@@ -92,7 +92,7 @@ const LocalAuthority = () => {
         return rowIndex + 1;
       },
     },
-    
+
     {
       field: "name",
       headerName: "Name",
@@ -128,6 +128,7 @@ const LocalAuthority = () => {
               to={`/local_authority/edit/${id}`}
               size="small"
             />
+
             <Button
               variant="contained"
               color="error"
@@ -135,11 +136,20 @@ const LocalAuthority = () => {
               onClick={() => handleOpenDialog(id, "delete")}
               size="small"
             />
+
             <Button
               variant="contained"
               color="primary"
               startIcon={<PaymentIcon />}
-              onClick={() => handleOpenDialog(id, "paid")}
+              component={Link}
+              to="/paypal-payment"
+              state={{
+                income: params.row.income,
+                authorityId: params.row.id,
+                uid: "677632e24a06db9562ce8bc0",
+                lid: id,
+              }}
+              // onClick={() => handleOpenDialog(id, "paid")}
               size="small"
             />
           </Box>
@@ -198,13 +208,12 @@ const LocalAuthority = () => {
         open={dialogOpen}
         onClose={handleCloseDialog}
         onConfirm={handleConfirm}
-        title={
-          dialogAction === "delete" ? "Confirm Delete" : "Confirm Clear Income"
-        }
+        action={dialogAction === "delete" ? "Delete" : "Payment"}
+        title={dialogAction === "delete" ? "Confirm Delete" : "Confirm Payment"}
         content={
           dialogAction === "delete"
             ? "Are you sure you want to delete this item?"
-            : "Are you sure you want to clear the income for this item?"
+            : "Are you sure you want to initiate the payment?"
         }
       />
     </Box>

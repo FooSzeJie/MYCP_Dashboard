@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -8,8 +8,14 @@ import Button from "@mui/material/Button";
 import { tokens } from "../theme";
 import { useTheme } from "@mui/material";
 
-
-const ConfirmDialog = ({ open, onClose, onConfirm, title, content }) => {
+const ConfirmDialog = ({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  content,
+  action = "Delete",
+}) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -24,7 +30,7 @@ const ConfirmDialog = ({ open, onClose, onConfirm, title, content }) => {
           Cancel
         </Button>
         <Button onClick={onConfirm} color="error">
-          Delete
+          {action}
         </Button>
       </DialogActions>
     </Dialog>
