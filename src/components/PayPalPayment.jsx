@@ -73,7 +73,7 @@ const PayPalPayment = () => {
           fullWidth
           InputLabelProps={{ style: { color: "grey" } }}
         />
-
+        {/* 
         <TextField
           label="Local Authority ID"
           type="text"
@@ -81,7 +81,7 @@ const PayPalPayment = () => {
           onChange={(e) => setAuthorityId(e.target.value)}
           fullWidth
           InputLabelProps={{ style: { color: "grey" } }}
-        />
+        /> */}
 
         {isLoading ? (
           <Typography variant="h6" align="center">
